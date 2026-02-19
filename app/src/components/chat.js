@@ -650,7 +650,7 @@ export default class ChatPanel extends React.Component {
                   }
                 })
               }
-              if(this.isVisualExperience()){
+              if(this.isVisualExperience() && m.visualList){
                 m.visualList.forEach((_m, idx3) => {
                   let txt = _m.text
                   if(txt.length){
@@ -689,7 +689,7 @@ export default class ChatPanel extends React.Component {
             if(this.isVisualExperience()){
               cardMsgs = []
               // Text
-              if(qaAction.message){
+              if(qaAction.message && qaAction.message.visualList){
                 qaAction.message.visualList.forEach((m, idx2) => {
                   cardMsgs.push(
                     <ReactSafeHtml key={'msg-safe-'+idx2} html={m.text} components={components} />

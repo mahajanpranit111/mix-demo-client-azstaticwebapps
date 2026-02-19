@@ -23,6 +23,58 @@ import { DlgController } from "../lib/dlg"
 import { MicrophoneAudioSource } from "../lib/audio"
 import { AsrResponse, AsrResponseType } from "../lib/asr"
 
+// Normalize REST API (snake_case) response to gRPC-web (camelCase + List suffix) format
+function normalizePayload(payload) {
+  if (!payload) return payload
+  const p = { ...payload }
+  // Top-level fields
+  if (p.session_id !== undefined) { p.sessionId = p.session_id }
+  // messages -> messagesList
+  if (p.messages && !p.messagesList) {
+    p.messagesList = p.messages.map(m => ({
+      ...m,
+      nlgList: m.nlg || m.nlgList || [],
+      visualList: m.visual || m.visualList || [],
+      ttsParameters: m.tts_parameters || m.ttsParameters || null,
+    }))
+  }
+  // qa_action -> qaAction
+  const qa = p.qa_action || p.qaAction
+  if (qa) {
+    p.qaAction = { ...qa }
+    if (qa.message) {
+      p.qaAction.message = {
+        ...qa.message,
+        nlgList: qa.message.nlg || qa.message.nlgList || [],
+        visualList: qa.message.visual || qa.message.visualList || [],
+        ttsParameters: qa.message.tts_parameters || qa.message.ttsParameters || null,
+      }
+    }
+    if (qa.selectable) { p.qaAction.selectable = qa.selectable }
+    if (qa.recognition_settings || qa.recognitionSettings) {
+      p.qaAction.recognitionSettings = qa.recognition_settings || qa.recognitionSettings
+      if (p.qaAction.recognitionSettings) {
+        const rs = p.qaAction.recognitionSettings
+        rs.collectionSettings = rs.collection_settings || rs.collectionSettings
+      }
+    }
+  }
+  // da_action -> daAction
+  if (p.da_action && !p.daAction) { p.daAction = p.da_action }
+  // escalation_action -> escalationAction
+  if (p.escalation_action && !p.escalationAction) { p.escalationAction = p.escalation_action }
+  // end_action -> endAction
+  if (p.end_action && !p.endAction) { p.endAction = p.end_action }
+  // continue_action -> continueAction
+  if (p.continue_action && !p.continueAction) {
+    p.continueAction = p.continue_action
+    if (p.continueAction && p.continueAction.backend_connection_settings) {
+      p.continueAction.backendConnectionSettings = p.continueAction.backend_connection_settings
+    }
+  }
+  return p
+}
+
 const ReactJson = loadable(() => import('react-json-view'))
 const Button = loadable(() => import('react-bootstrap/Button'))
 const Tabs = loadable(() => import('react-bootstrap/Tabs'))
@@ -386,7 +438,7 @@ export default class DLGaaS extends BaseClass {
   }
 
   isGrpcWeb(){
-    return true
+    return false // Use HTTP/1.1 proxy for local development
   }
 
   isVoiceInputExperience(){
@@ -643,11 +695,15 @@ export default class DLGaaS extends BaseClass {
       )
     } else {
       // Proxy
-      return await this.request(`${ROOT_URL}/api/dlgaas-session-start`, {
+      const res = await this.request(`${ROOT_URL}/api/dlgaas-session-start`, {
         token: this.state.accessToken,
         modelUrn: this.state.modelUrn,
         rawPayload: fullPayload
       })
+      if (res.response && res.response.payload) {
+        res.response.payload = normalizePayload(res.response.payload)
+      }
+      return res
     }
   }
 
@@ -662,11 +718,15 @@ export default class DLGaaS extends BaseClass {
         payload
       )
     } else {
-      return await this.request(`${ROOT_URL}/api/dlgaas-session-execute`, {
+      const res = await this.request(`${ROOT_URL}/api/dlgaas-session-execute`, {
         token: this.state.accessToken,
         sessionId: this.state.sessionId,
         rawPayload: payload
       })
+      if (res.response && res.response.payload) {
+        res.response.payload = normalizePayload(res.response.payload)
+      }
+      return res
     }
   }
 
@@ -1388,7 +1448,7 @@ export default class DLGaaS extends BaseClass {
                   <label htmlFor="sessionId" placeholder="d51d31eb-aaf3-4312-81d3-a7f09286ffe4" className="form-label">Session ID <span className='text-muted'>(optional)</span></label>
                   <div class="input-group-text">
                     <label className="form-check-label text-nowrap">
-                      <input type="checkbox" disabled={this.state.sessionId.length<1} className="form-check-input" name="continueSession" checked={this.state.continueSession} onChange={this.onChangeCheckboxInput.bind(this)} />
+                      <input type="checkbox" disabled={!this.state.sessionId || this.state.sessionId.length<1} className="form-check-input" name="continueSession" checked={this.state.continueSession} onChange={this.onChangeCheckboxInput.bind(this)} />
                       &nbsp; <small>Resume</small>
                     </label>
                   </div>
