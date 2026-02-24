@@ -16,7 +16,7 @@ services:
     environment:
       NODE_ENV: development
     env_file:
-      - ./.env
+      - ./${ENV_FILE:-.env}
     command: >-
       npm run develop -- -H 0.0.0.0 --https --cert-file localhost+2.pem --key-file localhost+2-key.pem
   api:
@@ -26,6 +26,8 @@ services:
     container_name: az-functions
     depends_on:
       - app
+    environment:
+      FUNCTIONS_CORE_TOOLS_TELEMETRY_OPTOUT: 1
     ports:
       - '7071:7071'
     volumes:
@@ -34,7 +36,8 @@ services:
       - './resources/certificate.pfx:/home/site/wwwroot/certificate.pfx'
       - './resources/.password:/home/site/wwwroot/.password'
     env_file:
-      - ./.env
+      - ./${ENV_FILE:-.env}
     working_dir: /home/site/wwwroot/api
+    stdin_open: false
     command: >-
-      func host start --cors * --useHttps --cert ../certificate.pfx --password ../.password
+      bash -c "yes | func host start --cors '*' --useHttps --cert ../certificate.pfx --password ../.password"
