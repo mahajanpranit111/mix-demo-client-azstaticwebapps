@@ -252,7 +252,7 @@ const EmailInput = ({placeholder, onSubmit}) => {
         <div className="form-control px-0 py-0 bg-light border-0">
           <input placeholder={placeholder || 'user@company.com'} type="email" value={email} className="form-control border-0" onChange={handleChange}/>
         </div>
-        <Button type={'submit'} variant={`primary`} className="rounded-0 rounded-end">></Button>
+        <Button type={'submit'} variant={`primary`} className="rounded-0 rounded-end"></Button>
       </InputGroup>
     </form>
   )
@@ -273,7 +273,7 @@ const PhoneInput = ({placeholder, onSubmit}) => {
         <div className="form-control px-0 py-0 bg-light border-0">
           <input placeholder={placeholder} pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" value={phoneNumber} className="form-control border-0" onChange={handleChange}/>
         </div>
-        <Button type={'submit'} variant={`primary`} className="rounded-0 rounded-end">></Button>
+        <Button type={'submit'} variant={`primary`} className="rounded-0 rounded-end"></Button>
       </InputGroup>
     </form>
   )
@@ -293,7 +293,7 @@ const DateInput = ({placeholder, onSubmit}) => {
         <div className="form-control px-0 py-0 bg-light border-0">
           <DatePicker selected={date} className="form-control border-0" onChange={date => setDate(date)}/>
         </div>
-        <Button type={'submit'} variant={`primary`} className="rounded-0 rounded-end">></Button>
+        <Button type={'submit'} variant={`primary`} className="rounded-0 rounded-end"></Button>
       </InputGroup>
     </form>
   )
@@ -316,7 +316,7 @@ const CurrencyInput = ({placeholder, onSubmit}) => {
       <InputGroup className="">
         <InputGroup.Text className="border-0" id="currencyselection">$</InputGroup.Text>
         <FormControl className="border-0" id="amount" placeholder={placeholder} onChange={handleChange}/>
-        <Button type={'submit'} variant={`primary`} className="rounded-0 rounded-end">></Button>
+        <Button type={'submit'} variant={`primary`} className="rounded-0 rounded-end"></Button>
       </InputGroup>
     </form>
   )
